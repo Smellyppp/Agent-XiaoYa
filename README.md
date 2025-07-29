@@ -41,8 +41,7 @@ Agent/
 ├── embedding_model/             # 嵌入模型存储
 │   └── all-MiniLM-L6-v2/        # HuggingFace sentence-transformer模型
 ├── Qwen3-0.6B/                  # 大语言模型相关文件
-├── data/                        # 数据文件（如城市名单）
-│   └── chinese_cities.txt
+├── data/                        # 数据文件
 ├── tests/                       # 单元测试与脚本
 ├── requirements.txt             # 依赖包列表
 ├── README.md                    # 项目说明文档
@@ -78,8 +77,8 @@ Agent/
 不过，如果您还有其他问题，比如关于劳动安全卫生、天气情况，我随时可以帮您解答哦！有什么您想了解的，可 以告诉我，我也会用温暖专业的语气为您服务～(*^▽^*)
 
 >请输入您的问题: 最近失踪案件
-🔍 正在搜索最新信息...
 
+🔍 正在搜索最新信息...
 【搜索引擎返回结果】
 来源: 未知来源
 标题: 胡鑫宇失踪事件最新进展:传来5个新消息,家属透露最新情况
@@ -102,7 +101,7 @@ Agent/
 3. 下载并放置 Qwen3-0.6B 模型于 `Qwen3-0.6B/` 目录。
 4. 下载 HuggingFace `all-MiniLM-L6-v2` 嵌入模型于 `embedding_model/all-MiniLM-L6-v2/`。
 5. 配置 `data/chinese_cities.txt` 城市名单。
-6. 在 `config.py` 中填写心知天气等API密钥。
+6. 在 `config.py` 中填写searxng等API密钥。
 7. 运行主程序：
    ```
    python main.py
