@@ -1,22 +1,21 @@
 # main.py
-# 多功能秘书助手系统（法律+天气）
-# 功能：基于Qwen模型的综合助手系统
+# 法律顾问助手系统
+# 功能：基于Qwen模型的法律助手系统
 
 import time
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from my_knowledge_base.vector_db import search_vector_db
 from prompt_templates import construct_prompt_template
-from api_integration.weather_api import get_weather_forecast
-from location_extractor import LocationExtractor  # 新增导入
+import api_integration.case_search as case_search  # 导入搜索引擎模块
 
-class SecretaryAssistant:
+class LegalAdvisor:
     def __init__(self, 
-                 model_path="./Qwen3-0.6B", 
+                 model_path="./model/Qwen3-0.6B", 
                  embedding_model_path="./embedding_model/all-MiniLM-L6-v2",
                  vector_db_path="./my_knowledge_base/vector_db/faiss_index",
                  context_chunks=3,
                  max_new_tokens=1024):
-        """初始化秘书助手系统"""
+        """初始化法律顾问系统"""
         self.tokenizer = AutoTokenizer.from_pretrained(model_path)
         self.model = AutoModelForCausalLM.from_pretrained(
             model_path,
@@ -27,29 +26,29 @@ class SecretaryAssistant:
         self.vector_db_path = vector_db_path
         self.context_chunks = context_chunks
         self.max_new_tokens = max_new_tokens
-        self.location_extractor = LocationExtractor()  # 初始化地点提取器
     
-    def is_weather_query(self, query):
-        """判断是否为天气查询"""
-        weather_keywords = ['天气', '气温', '预报', '下雨', '下雪', '温度', '湿度', '气象']
-        return any(keyword in query for keyword in weather_keywords)
+    def is_search_query(self, query):
+        """判断是否为需要网络搜索的问题"""
+        # 需要网络搜索的情况：最新案例、政策变化、具体事件等
+        search_keywords = ['最新', '最近', '新闻', '案例', '事件', '政策', '变化', '更新', '发生', '具体','近期']
+        return any(keyword in query for keyword in search_keywords)
     
-    def handle_weather_query(self, query):
-        """处理天气查询"""
-        location = self.location_extractor.extract_location(query)
-        print(f"📍 识别地点: {location}")
+    def handle_search_query(self, query):
+        """处理需要网络搜索的问题"""
+        print(f"🔍 正在搜索最新信息...")
         
-        weather_info = get_weather_forecast(location)
-        if weather_info["status"] == "error":
-            return weather_info["formatted"], {}
+        # 调用搜索引擎获取最新信息
+        search_result = case_search.search_and_extract(query)
         
-        print(f"\n【{location}的天气数据】")
-        print(weather_info["formatted"])
+        # 打印搜索结果
+        print("\n【搜索引擎返回结果】")
+        print(search_result)
         
-        prompt = construct_prompt_template(weather_info["formatted"], query)
+        # 使用搜索结果构建提示
+        prompt = construct_prompt_template(search_result, query)
         response = self._generate_response(prompt)
         
-        return response, {"service": "weather", "location": location}
+        return response, {"service": "search"}
 
     def handle_law_query(self, query):
         """处理法律咨询"""
@@ -100,9 +99,9 @@ class SecretaryAssistant:
         return context, results
 
 if __name__ == "__main__":
-    assistant = SecretaryAssistant()
-    print("多功能秘书助手已启动（法律咨询+天气查询，输入'exit'退出）")
-    print("温馨提示：天气查询默认地点为东莞，可在提问中指定其他城市")
+    advisor = LegalAdvisor()
+    print("法律顾问助手已启动（输入'exit'退出）")
+    print("温馨提示：我可以回答法律问题，也可以搜索最新案例和事件")
     
     while True:
         user_input = input("\n请输入您的问题: ").strip()
@@ -116,11 +115,11 @@ if __name__ == "__main__":
         try:
             start_time = time.time()
             
-            if assistant.is_weather_query(user_input):
-                response, info = assistant.handle_weather_query(user_input)
-                service_type = f"{info.get('location', '')}天气查询"
+            if advisor.is_search_query(user_input):
+                response, _ = advisor.handle_search_query(user_input)
+                service_type = "案例搜索"
             else:
-                response, _ = assistant.handle_law_query(user_input)
+                response, _ = advisor.handle_law_query(user_input)
                 service_type = "法律咨询"
             
             print(f"\n【{service_type}结果】")
