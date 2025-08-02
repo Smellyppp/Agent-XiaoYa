@@ -17,8 +17,7 @@
 
 ## 项目演示
 
-➡️ [查看交互式演示](https://github.com/Smellyppp/Agent-XiaoYa/tree/main/demo/demo.html)
-
+➡️[查看交互式演示](https://smellyppp.github.io/Agent-XiaoYa/demo/demo.html)
 ---
 
 ## 主要技术栈
