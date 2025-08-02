@@ -17,21 +17,7 @@
 
 ## 项目演示
 
-<div style="max-width: 800px; margin: auto; position: relative; border-radius: 8px; overflow: hidden; background: #f8f9fa; padding: 15px;">
-  <!-- 轮播图容器 -->
-  <div style="display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 15px; padding-bottom: 10px; scrollbar-width: none;">
-    <img src="./demo/1.png" alt="演示1" style="scroll-snap-align: start; min-width: 100%; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-    <img src="./demo/2.png" alt="演示2" style="scroll-snap-align: start; min-width: 100%; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-    <img src="./demo/3.png" alt="演示3" style="scroll-snap-align: start; min-width: 100%; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-  </div>
-  
-  <!-- 指示器 -->
-  <div style="display: flex; justify-content: center; gap: 8px; margin-top: 15px;">
-    <span style="display: block; width: 12px; height: 12px; border-radius: 50%; background: #3498db;"></span>
-    <span style="display: block; width: 12px; height: 12px; border-radius: 50%; background: #ddd;"></span>
-    <span style="display: block; width: 12px; height: 12px; border-radius: 50%; background: #ddd;"></span>
-  </div>
-</div>
+➡️ [查看交互式演示](https://github.com/Smellyppp/Agent-XiaoYa/tree/main/demo/demo.html)
 
 ---
 
