@@ -7,22 +7,36 @@
             max-width: 800px;
             margin: 0 auto;
             position: relative;
+            overflow: hidden; /* 防止内容溢出 */
+            height: 450px; /* 设置固定高度 */
         }
         .slides {
             display: flex;
             overflow-x: auto;
             scroll-snap-type: x mandatory;
             scroll-behavior: smooth;
+            height: 100%; /* 继承父容器高度 */
         }
         .slide {
             scroll-snap-align: start;
             flex-shrink: 0;
             width: 100%;
+            height: 100%; /* 占满父容器高度 */
+        }
+        .slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* 保持图片比例完整显示 */
+            display: block; /* 消除图片底部间隙 */
         }
         .indicators {
             display: flex;
             justify-content: center;
             padding: 10px 0;
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            right: 0;
         }
         .indicator {
             width: 12px;
@@ -31,6 +45,7 @@
             background: #ccc;
             margin: 0 5px;
             cursor: pointer;
+            transition: background 0.3s;
         }
         .indicator.active {
             background: #333;
@@ -46,24 +61,41 @@
             <div class="slide"><img src="./demo/4.png" alt="演示4"></div>
         </div>
         <div class="indicators">
+            <!-- 修正：4个指示器对应4张幻灯片 -->
             <span class="indicator active"></span>
+            <span class="indicator"></span>
             <span class="indicator"></span>
             <span class="indicator"></span>
         </div>
     </div>
 
     <script>
-        document.querySelectorAll('.indicator').forEach((dot, index) => {
+        const slides = document.querySelector('.slides');
+        const indicators = document.querySelectorAll('.indicator');
+        const slideWidth = document.querySelector('.slide').clientWidth;
+        
+        // 初始化指示器状态
+        function updateIndicators() {
+            const scrollPos = slides.scrollLeft;
+            const activeIndex = Math.round(scrollPos / slideWidth);
+            
+            indicators.forEach((dot, index) => {
+                dot.classList.toggle('active', index === activeIndex);
+            });
+        }
+
+        // 点击指示器滚动
+        indicators.forEach((dot, index) => {
             dot.addEventListener('click', () => {
-                document.querySelector('.slides').scrollTo({
-                    left: document.querySelector('.slide').clientWidth * index,
+                slides.scrollTo({
+                    left: slideWidth * index,
                     behavior: 'smooth'
                 });
-                
-                document.querySelector('.indicator.active').classList.remove('active');
-                dot.classList.add('active');
             });
         });
+
+        // 滚动时更新指示器
+        slides.addEventListener('scroll', updateIndicators);
     </script>
 </body>
 </html>
