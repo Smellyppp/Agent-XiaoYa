@@ -7,12 +7,14 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 from my_knowledge_base.vector_db import search_vector_db
 from prompt_templates import construct_prompt_template
 import api_integration.case_search as case_search  # 导入搜索引擎模块
+from MySQL.search import search_law
+import re
 
 class LegalAdvisor:
     def __init__(self, 
                  model_path="./model/Qwen3-0.6B", 
-                 embedding_model_path="./embedding_model/all-MiniLM-L6-v2",
-                 vector_db_path="./my_knowledge_base/vector_db/faiss_index",
+                 embedding_model_path="./embedding_model/ChatLaw-Text2Vec",
+                 vector_db_path="./my_knowledge_base/vector_db/chroma_data",
                  context_chunks=3,
                  max_new_tokens=1024):
         """初始化法律顾问系统"""
@@ -33,6 +35,19 @@ class LegalAdvisor:
         search_keywords = ['最新', '最近', '新闻', '案例', '事件', '政策', '变化', '更新', '发生', '具体','近期']
         return any(keyword in query for keyword in search_keywords)
     
+    def is_database_query(self, query):
+        """判断是否为需要数据库查询的问题"""
+        db_keywords = [
+            '条', '款', '项', '编', '章', '节', 
+            '民法典', '规定', '法律', '法规', '条文',
+            '第[零一二三四五六七八九十百千]+条'  # 正则模式匹配条文编号
+        ]
+        return any(
+            keyword in query if isinstance(keyword, str) 
+            else re.search(keyword, query)
+            for keyword in db_keywords
+        )
+    
     def handle_search_query(self, query):
         """处理需要网络搜索的问题"""
         print(f"🔍 正在搜索最新信息...")
@@ -49,8 +64,27 @@ class LegalAdvisor:
         response = self._generate_response(prompt)
         
         return response, {"service": "search"}
+    
+    def handle_database_query(self, query):
+        """处理数据库查询"""
+        print(f"📖 正在查询法律条文数据库...")
+        db_results = search_law(query)
+        
+        print("\n【数据库查询结果】")
+        for i, result in enumerate(db_results[:3]):
+            print(f"[条文 {result['条文编号']}]: {result['内容']}")
+            print(f"位置: {result['位置']}\n")
+        
+        context = "数据库查询结果:\n\n"
+        for result in db_results[:3]:
+            context += f"第{result['条文编号']}条 [{result['位置']}]: {result['内容']}\n\n"
+        
+        prompt = construct_prompt_template(context, query)
+        response = self._generate_response(prompt)
+        
+        return response, {"service": "database"}
 
-    def handle_law_query(self, query):
+    def handle_vector_query(self, query):
         """处理法律咨询"""
         context, results = self.retrieve_context(query)
         
@@ -88,9 +122,10 @@ class LegalAdvisor:
         results = search_vector_db(
             query=query,
             vector_db_path=self.vector_db_path,
-            embedding_model_path=self.embedding_model_path,
+            embedding_model_path=self.embedding_model_path,  # 传递模型路径
             k=self.context_chunks
         )
+    
         
         context = "检索到的相关法律条文:\n\n"
         for i, result in enumerate(results):
@@ -101,7 +136,7 @@ class LegalAdvisor:
 if __name__ == "__main__":
     advisor = LegalAdvisor()
     print("法律顾问助手已启动（输入'exit'退出）")
-    print("温馨提示：我可以回答法律问题，也可以搜索最新案例和事件")
+    print("温馨提示：我可以回答法律问题、查询法律条文，也可以搜索最新案例和事件")
     
     while True:
         user_input = input("\n请输入您的问题: ").strip()
@@ -118,10 +153,14 @@ if __name__ == "__main__":
             if advisor.is_search_query(user_input):
                 response, _ = advisor.handle_search_query(user_input)
                 service_type = "案例搜索"
+            elif advisor.is_database_query(user_input):
+                response, _ = advisor.handle_database_query(user_input)
+                service_type = "法律条文查询"
             else:
-                response, _ = advisor.handle_law_query(user_input)
-                service_type = "法律咨询"
-            
+                response, _ = advisor.handle_vector_query(user_input)
+                service_type = "法律知识检索"
+                
+                            
             print(f"\n【{service_type}结果】")
             print(response)
             print(f"\n[系统统计] 处理时间: {time.time()-start_time:.2f}s")

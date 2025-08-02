@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>法律智能助手</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 顶部标题栏 -->
+        <header>
+            <h1>法律智能助手</h1>
+            <div class="search-toggle">
+                <label for="web-search">联网搜索：</label>
+                <label class="switch">
+                    <input type="checkbox" id="web-search">
+                    <span class="slider"></span>
+                </label>
+                <span id="search-status">已关闭</span>
+            </div>
+        </header>
+
+        <!-- 主内容区 -->
+        <div class="main-content">
+            <!-- 左侧聊天区域 -->
+            <div class="chat-container">
+                <div class="chat-history" id="chatHistory">
+                    <!-- AI欢迎消息 -->
+                    <div class="message ai-message">
+                        <div class="avatar">AI</div>
+                        <div class="content">
+                            您好！我是法律智能助手，请问有什么法律问题需要咨询？
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 用户输入区域 -->
+                <div class="input-area">
+                    <input type="text" id="userInput" placeholder="请输入您的问题..." autocomplete="off">
+                    <button id="sendBtn">发送</button>
+                </div>
+            </div>
+
+            <!-- 右侧搜索结果区域 -->
+            <div class="search-results">
+                <h3>搜索结果</h3>
+                <div class="results-container" id="resultsContainer">
+                </div>
+            </div>
+        </div>
+        <div class="bottom-results">
+        <!-- 向量检索结果区域 -->
+        <div class="vector-results">
+            <h3>向量检索结果</h3>
+            <div class="results-container" id="vectorResultsContainer">
+            </div>
+        </div>
+        
+        <!-- 数据库检索结果区域 -->
+        <div class="database-results">
+            <h3>数据库检索结果</h3>
+            <div class="results-container" id="databaseResultsContainer">
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

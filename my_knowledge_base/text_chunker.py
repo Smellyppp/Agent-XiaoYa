@@ -13,11 +13,14 @@
 文档结构要求：
 [title]文档标题[/title]
 [content]目录内容[/content]
-[section1]章节标题[/section1]
-[ssection2]法条内容[/ssection2]
+[section0]编标题[/section0]  (可选)
+[section1]章标题[/section1]
+[section2]节标题[/section2]
+[section3]小节标题[/section3]  (可选)
+[article]法条内容[/article]
 
 输出结果：
-1. 每个法条作为一个独立分块，包含所属章节和文档标题信息
+1. 每个法条块包含完整的层级信息
 2. 目录内容作为单独分块
 3. 每个分块保存为独立文本文件
 4. 生成包含所有分块元数据的JSON文件
@@ -28,14 +31,11 @@ python text_chunker.py
 配置参数：
 - parsed_dir: 输入文件目录（默认为"parsed_document"）
 - output_dir: 输出目录（默认为"chunk_output"）
-- chunk_size: 分块大小（默认为500字符）
-- chunk_overlap: 分块重叠大小（默认为100字符）
 """
 
 import os
 import json
 import re
-from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.docstore.document import Document
 from langchain_community.document_loaders.base import BaseLoader
 
@@ -60,13 +60,58 @@ class LawDocumentLoader(BaseLoader):
             
         documents = []  # 存储解析后的文档块
         current_title = ""  # 当前文档标题
-        current_section1 = ""  # 当前章节标题
+        current_section0 = ""  # 当前编标题
+        current_section1 = ""  # 当前章标题
+        current_section2 = ""  # 当前节标题
+        current_section3 = ""  # 当前小节标题
         
         # 定义用于匹配各种标签的正则表达式
         title_pattern = re.compile(r'^\[title\](.+?)\[/title\]$')  # 匹配文档标题
         content_pattern = re.compile(r'^\[content\](.+?)\[/content\]$', re.DOTALL)  # 匹配目录内容
-        section1_pattern = re.compile(r'^\[section1\](.+?)\[/section1\]$')  # 匹配章节标题
-        ssection2_pattern = re.compile(r'^\[ssection2\](.+?)\[/ssection2\]$')  # 匹配法条内容
+        section0_pattern = re.compile(r'^\[section0\](.+?)\[/section0\]$')  # 匹配编标题
+        section1_pattern = re.compile(r'^\[section1\](.+?)\[/section1\]$')  # 匹配章标题
+        section2_pattern = re.compile(r'^\[section2\](.+?)\[/section2\]$')  # 匹配节标题
+        section3_pattern = re.compile(r'^\[section3\](.+?)\[/section3\]$')  # 匹配小节标题
+        article_pattern = re.compile(r'^\[article\](.+?)\[/article\]$', re.DOTALL)        
+        # 状态变量
+        current_articles = []  # 当前收集的法条内容
+        has_section3 = False   # 当前节下是否有小节
+        
+        def create_chunk():
+            """创建并添加一个法条块"""
+            if current_articles:
+                # 构建块内容
+                chunk_content = ""
+                if current_title:
+                    chunk_content += f"【标题】{current_title}\n"
+                if current_section0:
+                    chunk_content += f"【编】{current_section0}\n"
+                if current_section1:
+                    chunk_content += f"【章】{current_section1}\n"
+                if current_section2:
+                    chunk_content += f"【节】{current_section2}\n"
+                if current_section3:
+                    chunk_content += f"【小节】{current_section3}\n"
+                
+                # 添加所有法条内容
+                chunk_content += "\n".join(current_articles)
+                
+                # 构建元数据
+                metadata = {
+                    'title': current_title,
+                    'section0': current_section0,
+                    'section1': current_section1,
+                    'section2': current_section2,
+                    'section3': current_section3,
+                    'content_type': 'law_chunk',  # 标记为法律块
+                    'articles': current_articles[:]  # 保存原始法条列表
+                }
+                
+                documents.append(Document(
+                    page_content=chunk_content,
+                    metadata=metadata
+                ))
+        
         
         # 逐行处理文档内容
         lines = content.split('\n')
@@ -88,7 +133,10 @@ class LawDocumentLoader(BaseLoader):
                 content_text = content_match.group(1).strip()
                 metadata = {
                     'title': current_title,
+                    'section0': '',
                     'section1': '',
+                    'section2': '',
+                    'section3': '',
                     'content_type': 'table_of_contents'  # 标记为目录内容
                 }
                 documents.append(Document(
@@ -98,53 +146,119 @@ class LawDocumentLoader(BaseLoader):
                 i += 1
                 continue
                 
-            # 检查是否为章节标题
+            # 检查是否为编标题
+            section0_match = section0_pattern.match(line)
+            if section0_match:
+                # 编变化时完成当前块
+                create_chunk()
+                current_articles = []
+                current_section0 = section0_match.group(1).strip()
+                current_section1 = ""
+                current_section2 = ""
+                current_section3 = ""
+                has_section3 = False
+                i += 1
+                continue
+                
+            # 检查是否为章标题
             section1_match = section1_pattern.match(line)
             if section1_match:
+                # 章变化时完成当前块
+                create_chunk()
+                current_articles = []
                 current_section1 = section1_match.group(1).strip()
+                current_section2 = ""
+                current_section3 = ""
+                has_section3 = False
+                i += 1
+                continue
+                
+            # 检查是否为节标题
+            section2_match = section2_pattern.match(line)
+            if section2_match:
+                # 节变化时完成当前块
+                create_chunk()
+                current_articles = []
+                current_section2 = section2_match.group(1).strip()
+                current_section3 = ""
+                has_section3 = False  # 重置小节状态
+                i += 1
+                continue
+                
+            # 检查是否为小节标题
+            section3_match = section3_pattern.match(line)
+            if section3_match:
+                # 小节变化时完成当前块
+                create_chunk()
+                current_articles = []
+                current_section3 = section3_match.group(1).strip()
+                has_section3 = True  # 标记存在小节
                 i += 1
                 continue
                 
             # 检查是否为法条内容
-            ssection2_match = ssection2_pattern.match(line)
-            if ssection2_match:
-                # 创建法条文档块（包含文档标题和章节标题）
-                article_text = ssection2_match.group(1).strip()
-                metadata = {
-                    'title': current_title,
-                    'section1': current_section1,
-                    'content_type': 'law_article'  # 标记为法条内容
-                }
-                documents.append(Document(
-                    page_content=f"{current_title}\n{current_section1}\n{article_text}",
-                    metadata=metadata
-                ))
+            article_match = article_pattern.match(line)
+            if article_match:
+                article_text = article_match.group(1).strip()
+                # 去除原始标签格式
+                current_articles.append(article_text)
                 i += 1
                 continue
                 
+            # 处理未标记的文本行（添加到当前法条）
+            if current_articles and line:
+                # 添加到最后一个法条
+                current_articles[-1] += "\n" + line
+                
             i += 1  # 处理下一行
+        
+        # 处理最后一个块
+        create_chunk()
         
         return documents
 
-def chunk_and_save_parsed_files(parsed_dir="parsed_document", output_dir="chunk_output", 
-                               chunk_size=500, chunk_overlap=100):
-    """处理解析后的文档文件，进行结构感知分块并保存
+def split_law_chunk(doc, max_size=1000):
+    """分割法律块，确保法条不被中断且每个分块包含完整标题信息"""
+    chunks = []
     
-    参数:
-        parsed_dir: 已解析文档的输入目录
-        output_dir: 分块结果输出目录
-        chunk_size: 分块大小（字符数）
-        chunk_overlap: 分块重叠大小（字符数）
-    """
-    os.makedirs(output_dir, exist_ok=True)  # 创建输出目录
+    # 提取标题信息
+    title_info = ""
+    if doc.metadata['title']:
+        title_info += f"【标题】{doc.metadata['title']}\n"
+    if doc.metadata['section0']:
+        title_info += f"【编】{doc.metadata['section0']}\n"
+    if doc.metadata['section1']:
+        title_info += f"【章】{doc.metadata['section1']}\n"
+    if doc.metadata['section2']:
+        title_info += f"【节】{doc.metadata['section2']}\n"
+    if doc.metadata['section3']:
+        title_info += f"【小节】{doc.metadata['section3']}\n"
     
-    # 初始化文本分割器（用于处理非法条内容）
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=chunk_size,
-        chunk_overlap=chunk_overlap,
-        length_function=len,
-        add_start_index=True
-    )
+    current_chunk = title_info
+    articles = doc.metadata.get('articles', [])
+    
+    for article in articles:
+        # 如果添加当前法条会超过限制，且当前块已有内容，则完成当前块
+        if len(current_chunk) + len(article) > max_size and len(current_chunk) > len(title_info):
+            chunks.append(current_chunk)
+            current_chunk = title_info  # 新块以标题信息开头
+        
+        # 添加法条到当前块
+        if current_chunk == title_info:  # 如果是新块的第一条
+            current_chunk += article
+        else:
+            current_chunk += "\n" + article
+    
+    # 添加最后一个块
+    if current_chunk != title_info:
+        chunks.append(current_chunk)
+    
+    return chunks
+
+
+def chunk_and_save_parsed_files(parsed_dir="parsed_document", output_dir="chunk_output"):
+    """处理解析后的文档文件，进行结构感知分块并保存"""
+    os.makedirs(output_dir, exist_ok=True)
     
     # 遍历所有文件类型目录（docx/pdf/txt）
     for file_type in ['docx', 'pdf', 'txt']:
@@ -157,7 +271,7 @@ def chunk_and_save_parsed_files(parsed_dir="parsed_document", output_dir="chunk_
         for file_name in os.listdir(type_dir):
             if file_name.endswith('.txt'):
                 file_path = os.path.join(type_dir, file_name)
-                original_name = os.path.splitext(file_name)[0]  # 获取原始文件名（不含扩展名）
+                original_name = os.path.splitext(file_name)[0]
                 
                 # 使用自定义加载器加载文档
                 loader = LawDocumentLoader(file_path)
@@ -169,40 +283,66 @@ def chunk_and_save_parsed_files(parsed_dir="parsed_document", output_dir="chunk_
                 
                 # 处理并保存分块结果
                 chunk_data = []
-                for doc_idx, doc in enumerate(documents):
-                    # 法条内容不进行进一步分割
-                    if doc.metadata['content_type'] == 'law_article':
-                        chunks = [doc]  # 保持原样
-                    else:
-                        # 其他内容（如目录）使用分割器处理
-                        chunks = text_splitter.split_documents([doc])
-                    
-                    # 处理每个分块
-                    for chunk_idx, chunk in enumerate(chunks):
-                        # 创建分块文件
-                        chunk_file = os.path.join(file_output_dir, f"chunk_{doc_idx+1}_{chunk_idx+1}.txt")
+                chunk_counter = 1
+                
+                for doc in documents:
+                    if doc.metadata['content_type'] == 'table_of_contents':
+                        # 目录内容直接保存
+                        chunk_file = os.path.join(file_output_dir, f"chunk_{chunk_counter}.txt")
                         with open(chunk_file, 'w', encoding='utf-8') as f:
-                            # 处理多余的换行符：将连续多个换行符替换为单个换行符
-                            cleaned_content = re.sub(r'\n{2,}', '\n', chunk.page_content)
+                            cleaned_content = re.sub(r'\n{2,}', '\n\n', doc.page_content)
                             f.write(cleaned_content)
                         
                         # 构建分块元数据
                         chunk_info = {
-                            'chunk_id': f"{doc_idx+1}_{chunk_idx+1}",  # 分块ID
-                            'text': chunk.page_content,  # 分块文本内容
+                            'chunk_id': str(chunk_counter),
+                            'text': doc.page_content,
                             'metadata': {
-                                'source': file_path,  # 源文件路径
-                                'chunk_path': chunk_file,  # 分块文件路径
-                                'file_type': file_type,  # 文件类型
-                                'original_name': original_name,  # 原始文件名
-                                'title': chunk.metadata.get('title', ''),  # 文档标题
-                                'section1': chunk.metadata.get('section1', ''),  # 章节标题
-                                'content_type': chunk.metadata.get('content_type', ''),  # 内容类型
-                                'start_index': chunk.metadata.get('start_index', 0),  # 起始位置
-                                'end_index': chunk.metadata.get('end_index', len(chunk.page_content))  # 结束位置
+                                'source': file_path,
+                                'chunk_path': chunk_file,
+                                'file_type': file_type,
+                                'original_name': original_name,
+                                'title': doc.metadata.get('title', ''),
+                                'section0': doc.metadata.get('section0', ''),
+                                'section1': doc.metadata.get('section1', ''),
+                                'section2': doc.metadata.get('section2', ''),
+                                'section3': doc.metadata.get('section3', ''),
+                                'content_type': doc.metadata.get('content_type', ''),
+                                'char_count': len(doc.page_content)  # 添加字符数统计
                             }
                         }
                         chunk_data.append(chunk_info)
+                        chunk_counter += 1
+                    else:
+                        # 法律内容需要分割
+                        chunks = split_law_chunk(doc, max_size=1000)
+                        
+                        for chunk_content in chunks:
+                            chunk_file = os.path.join(file_output_dir, f"chunk_{chunk_counter}.txt")
+                            with open(chunk_file, 'w', encoding='utf-8') as f:
+                                cleaned_content = re.sub(r'\n{2,}', '\n\n', chunk_content)
+                                f.write(cleaned_content)
+                            
+                            # 构建分块元数据
+                            chunk_info = {
+                                'chunk_id': str(chunk_counter),
+                                'text': chunk_content,
+                                'metadata': {
+                                    'source': file_path,
+                                    'chunk_path': chunk_file,
+                                    'file_type': file_type,
+                                    'original_name': original_name,
+                                    'title': doc.metadata.get('title', ''),
+                                    'section0': doc.metadata.get('section0', ''),
+                                    'section1': doc.metadata.get('section1', ''),
+                                    'section2': doc.metadata.get('section2', ''),
+                                    'section3': doc.metadata.get('section3', ''),
+                                    'content_type': doc.metadata.get('content_type', ''),
+                                    'char_count': len(chunk_content)  # 添加字符数统计
+                                }
+                            }
+                            chunk_data.append(chunk_info)
+                            chunk_counter += 1
                 
                 # 保存元数据到JSON文件
                 metadata_file = os.path.join(file_output_dir, "metadata.json")
@@ -210,7 +350,6 @@ def chunk_and_save_parsed_files(parsed_dir="parsed_document", output_dir="chunk_
                     json.dump(chunk_data, f, ensure_ascii=False, indent=2)
                 
                 print(f"已处理 {file_name}: 生成 {len(chunk_data)} 个分块")
-
 def main():
     """主函数，执行文档分块处理流程"""
     # 设置输入输出目录
@@ -221,12 +360,8 @@ def main():
     print(f"输入目录: {parsed_dir}")
     print(f"输出目录: {chunk_output}")
     
-    # 设置分块参数
-    chunk_size = 500    # 每个分块的最大字符数
-    chunk_overlap = 100 # 分块间的重叠字符数
-    
     # 执行分块处理
-    chunk_and_save_parsed_files(parsed_dir, chunk_output, chunk_size, chunk_overlap)
+    chunk_and_save_parsed_files(parsed_dir, chunk_output)
     print("\n文档分块处理完成!")
 
 if __name__ == "__main__":

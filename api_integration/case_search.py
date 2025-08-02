@@ -6,6 +6,48 @@ from bs4 import BeautifulSoup
 from langchain_community.utilities import SearxSearchWrapper
 from config import SEARX_CONFIG  # 导入配置
 
+def format_structured_results(raw_results):
+    """调用search_and_extract并返回结构化结果"""
+    # 调用search_and_extract获取原始结果
+    raw_result = raw_results
+    
+    # 处理字符串类型的返回结果
+    if isinstance(raw_result, str):
+        # 判断是否是错误信息
+        if raw_result.startswith(("未找到", "所有网页检索失败")):
+            return [{
+                'title': '搜索失败',
+                'content': raw_result,
+                'source': ''
+            }]
+        else:
+            # 处理成功的字符串结果
+            lines = raw_result.split('\n')
+            source = lines[0].replace('来源: ', '') if len(lines) > 0 else '未知来源'
+            title = lines[1].replace('标题: ', '') if len(lines) > 1 else '无标题'
+            content = '\n'.join(lines[2:]) if len(lines) > 2 else raw_result
+            
+            return [{
+                'title': title,
+                'content': content,
+                'source': source
+            }]
+    
+    # 如果已经是列表格式则直接返回
+    elif isinstance(raw_result, dict):
+        return [{
+            'title': raw_result.get('title', '无标题'),
+            'content': raw_result.get('content', '无内容'),
+            'source': raw_result.get('source', '未知来源')
+        }]
+    
+    # 默认返回错误结构
+    return {
+        'title': '未知错误',
+        'content': '无法解析搜索结果',
+        'source': ''
+    }
+
 def search_and_extract(query):
     """执行搜索并提取第一个成功的网页内容前500字"""
     # 创建 Searx 搜索实例
@@ -94,19 +136,43 @@ def search_and_extract(query):
 
 if __name__ == "__main__":
     print("🔍 网页内容搜索工具（输入'exit'退出）")
+    print("请选择输出格式：")
+    print("1. 结构化输出")
+    print("2. 字符串输出")
+    
     while True:
-        query = input("\n请输入搜索关键词: ").strip()
-        if query.lower() in ['exit', 'quit']:
+        output_format = input("\n请选择输出格式(1/2): ").strip()
+        if output_format in ['exit', 'quit']:
             break
-        
-        if not query:
-            print("⚠ 请输入有效搜索词")
+            
+        if output_format not in ['1', '2']:
+            print("⚠ 请输入有效选项(1或2)")
             continue
-        
-        try:
-            print(f"\n正在搜索: {query}")
-            result = search_and_extract(query)
-            print("\n【搜索结果】")
-            print(result)
-        except Exception as e:
-            print(f"搜索失败: {str(e)}")
+            
+        while True:
+            query = input("\n请输入搜索关键词(输入'back'返回格式选择): ").strip()
+            if query.lower() in ['exit', 'quit']:
+                exit()
+            if query.lower() == 'back':
+                break
+                
+            if not query:
+                print("⚠ 请输入有效搜索词")
+                continue
+                
+            try:
+                print(f"\n正在搜索: {query}")
+                raw_results = search_and_extract(query)
+                    
+                if output_format == '1':
+                    # 结构化输出
+                    results = format_structured_results(raw_results)
+                    print("\n【结构化搜索结果】")
+                    print(results)
+                
+                else:
+                    print("\n【字符串搜索结果】")
+                    print(raw_results)
+                    
+            except Exception as e:
+                print(f"搜索失败: {str(e)}")

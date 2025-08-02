@@ -1,0 +1,450 @@
+
+/* 全局样式重置 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* 页面整体样式 */
+body {
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    color: #333;
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    background-image: url('./image/1.jpg'); 
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    position: relative;
+}
+
+/* 主容器样式 */
+.container {
+    width: 100%;
+    max-width: 1200px;
+    height: 85vh; /* 调整高度为视窗的85% */
+    overflow: auto;
+    padding: 20px;
+    margin: 0 auto;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    background-color: rgba(255, 255, 255, 0.88);
+    display: flex;
+    flex-direction: column;
+    background-color: rgba(255, 255, 255, 0.7); /* 调整最后一个值(0.9)改变透明度 */
+}
+
+/* 顶部标题栏样式 */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: linear-gradient(to right, #f18f8f, #a30b0b);
+    color: white;
+    border-radius: 8px 8px 0 0;
+    margin-bottom: 20px;
+}
+
+/* 标题样式 */
+header h1 {
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* 搜索切换区域样式 */
+.search-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* 开关按钮样式 */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+/* 隐藏原始输入框 */
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* 开关滑块样式 */
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 24px;
+}
+
+/* 开关滑块圆形按钮 */
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+/* 开关激活状态 */
+input:checked + .slider {
+    background-color: #3498db;
+}
+
+/* 滑块移动动画 */
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+/* 主内容区布局 */
+.main-content {
+    display: flex;
+    gap: 20px;
+    flex: 1; /* 使用flex自适应高度 */
+    min-height: 0;
+}
+
+/* 聊天区域样式 */
+.chat-container {
+    flex: 3;
+    display: flex;
+    flex-direction: column;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    background-color: rgba(255, 255, 255, 0.2); /* 调整透明度 */
+    height: 40vh;
+}
+
+/* 聊天历史区域 */
+.chat-history {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto; /* 添加滚动条 */
+    min-height: 0; /* 允许滚动 */
+}
+
+/* 消息通用样式 */
+.message {
+    display: flex;
+    max-width: 85%;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* 消息淡入动画 */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* 用户消息样式 */
+.user-message {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+}
+
+/* AI消息样式 */
+.ai-message {
+    align-self: flex-start;
+}
+
+/* 头像样式 */
+.avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: white;
+    margin: 0 10px;
+    flex-shrink: 0;
+}
+
+/* 用户头像样式 */
+.user-message .avatar {
+    background-color: #3498db;
+}
+
+/* AI头像样式 */
+.ai-message .avatar {
+    background-color: #2ecc71;
+}
+
+/* 消息内容样式 */
+.content {
+    padding: 12px 15px;
+    border-radius: 18px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    line-height: 1.5;
+}
+
+/* 用户消息内容样式 */
+.user-message .content {
+    background: linear-gradient(to right, #e3f2fd, #bbdefb);
+    border-bottom-right-radius: 4px;
+}
+
+/* AI消息内容样式 */
+.ai-message .content {
+    background: linear-gradient(to right, #f1f8e9, #dcedc8);
+    border-bottom-left-radius: 4px;
+}
+
+/* 输入区域样式 */
+.input-area {
+    display: flex;
+    padding: 15px;
+    background-color: rgba(248, 249, 250, 0.7);
+    border-top: 1px solid #eee;
+}
+
+/* 输入框样式 */
+.input-area input {
+    flex: 1;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 24px;
+    outline: none;
+    font-size: 1rem;
+    background-color: rgba(255, 255, 255, 0.8);
+}
+
+/* 输入框聚焦样式 */
+.input-area input:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+/* 发送按钮样式 */
+.input-area button {
+    padding: 12px 24px;
+    margin-left: 10px;
+    background: linear-gradient(to right, #e05858, #c51919);
+    color: white;
+    border: none;
+    border-radius: 24px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+/* 发送按钮悬停效果 */
+.input-area button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+}
+
+/* 搜索结果区域样式 */
+.search-results {
+    flex: 2;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background-color: rgba(255, 255, 255, 0.2); /* 调整透明度 */
+    height: 40vh;
+}
+
+/* 结果标题样式 */
+.search-results h3 {
+    padding: 15px 20px;
+    background-color: rgba(248, 249, 250, 0.7);
+    border-bottom: 1px solid #eee;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* 结果容器样式 */
+.results-container {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto; /* 添加滚动条 */
+    min-height: 0; /* 允许滚动 */
+}
+
+/* 单个结果项样式 */
+.result-item {
+    padding: 15px;
+    margin-bottom: 15px;
+    background-color: rgba(248, 249, 250, 0.7);
+    border-radius: 8px;
+    border-left: 4px solid #b41d1d;
+    transition: transform 0.3s;
+}
+
+/* 结果项悬停效果 */
+.result-item:hover {
+    transform: translateX(5px);
+    background-color: rgba(255, 255, 255, 0.9);
+}
+
+/* 结果标题样式 */
+.result-item h4 {
+    margin-bottom: 8px;
+    color: #2c3e50;
+}
+
+/* 结果内容样式 */
+.result-item p {
+    color: #555;
+    font-size: 0.9rem;
+}
+
+/* 底部结果区域布局 */
+.bottom-results {
+    display: flex;
+    gap: 20px;
+    margin-top: 20px;
+    flex: 0.8; /* 调整高度比例 */
+    height: 25vh; /* 固定高度 */
+    min-height: 0; 
+}
+
+/* 向量结果和数据库结果通用样式 */
+.vector-results, .database-results {
+    flex: 1;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background-color: rgba(255, 255, 255, 0.2);
+    height: 100%;
+}
+
+/* 添加标题栏样式 - 新增部分 */
+.vector-results h3, .database-results h3 {
+    padding: 15px 20px;
+    background-color: rgba(248, 249, 250, 0.7);
+    border-bottom: 1px solid #eee;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* 添加内容容器样式 - 新增部分 */
+.vector-container, .database-container {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto; /* 添加滚动条 */
+    min-height: 0; /* 允许滚动 */
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto; /* 添加滚动条 */
+    min-height: 0; /* 允许滚动 */
+}
+
+/* 更新标题样式选择器 */
+.search-results h3, .vector-results h3, .database-results h3 {
+    padding: 15px 20px;
+    background-color: rgba(248, 249, 250, 0.7);
+    border-bottom: 1px solid #eee;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+/* 滚动条轨道样式 */
+::-webkit-scrollbar-track {
+    background: rgba(241, 241, 241, 0.5);
+    border-radius: 4px;
+}
+
+/* 滚动条滑块样式 */
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+/* 滚动条滑块悬停样式 */
+::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* 结果来源样式 */
+.result-source {
+    font-size: 0.8rem;
+    color: #777;
+    margin-top: 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* 临时消息样式 */
+#temp-message .content {
+    color: #888;
+    font-style: italic;
+}
+
+/* 响应式调整 */
+@media (max-width: 900px) {
+    .main-content {
+        flex-direction: column;
+    }
+    .bottom-results {
+        flex-direction: column;
+    }
+}
+
+/* 在style.css文件顶部添加以下内容 */
+/* body {
+    background-image: url('./image/1.jpg'); 
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    position: relative;
+}  */
