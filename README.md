@@ -14,51 +14,42 @@
 
 ---
 
+
 ## 项目演示
 
-<div style="max-width: 800px; margin: auto; position: relative;">
-  <!-- 图片容器 -->
-  <div style="overflow: hidden; border-radius: 8px;">
-    <img src="./demo/1.png" alt="演示1" id="carouselImage" style="width: 100%; display: block;">
+<div style="max-width: 800px; margin: auto; position: relative; border-radius: 8px; overflow: hidden; background: #f8f9fa; padding: 15px;">
+  <!-- 轮播图容器 -->
+  <div style="display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 15px; padding-bottom: 10px; scrollbar-width: none;">
+    <img src="./demo/1.png" alt="演示1" style="scroll-snap-align: start; min-width: 100%; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+    <img src="./demo/2.png" alt="演示2" style="scroll-snap-align: start; min-width: 100%; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+    <img src="./demo/3.png" alt="演示3" style="scroll-snap-align: start; min-width: 100%; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
   </div>
   
-  <!-- 导航按钮 -->
-  <div style="display: flex; justify-content: center; gap: 10px; margin-top: 10px;">
-    <button onclick="changeImage(1)">1</button>
-    <button onclick="changeImage(2)">2</button>
-    <button onclick="changeImage(3)">3</button>
+  <!-- 指示器 -->
+  <div style="display: flex; justify-content: center; gap: 8px; margin-top: 15px;">
+    <span style="display: block; width: 12px; height: 12px; border-radius: 50%; background: #3498db;"></span>
+    <span style="display: block; width: 12px; height: 12px; border-radius: 50%; background: #ddd;"></span>
+    <span style="display: block; width: 12px; height: 12px; border-radius: 50%; background: #ddd;"></span>
   </div>
 </div>
-
-<script>
-  const images = [
-    './demo/1.png',
-    './demo/2.png',
-    './demo/3.png'
-    './demo/3.png'
-  ];
-  
-  function changeImage(index) {
-    document.getElementById('carouselImage').src = images[index - 1];
-  }
-</script>
 
 ---
 
 ## 主要技术栈
 
-| 技术/库                 | 作用                      
-| Python                  | 主开发语言                
-| PyTorch                 | 深度学习框架              
-| Transformers            | NLP模型库                 
-| Qwen3-0.6B              | 大语言模型                
-| sentence-transformers   | 文本嵌入模型              
-| Chroma                  | 向量数据库                
-| LangChain               | 文档处理/分块/加载         
-| Requests                | HTTP请求                               
-| Flask/FastAPI           | 后端API服务               
-| HTML/CSS/JS             | 前端页面                  
-
+| 技术/库               | 作用                       |
+|-----------------------|----------------------------|
+| Python               | 主开发语言                 |
+| PyTorch              | 深度学习框架               |
+| Transformers         | NLP模型库                  |
+| Qwen3-0.6B           | 大语言模型                 |
+| sentence-transformers| 文本嵌入模型               |
+| Chroma               | 向量数据库                 |
+| LangChain            | 文档处理/分块/加载         |
+| Requests             | HTTP请求                   |
+| Flask/FastAPI        | 后端API服务                |
+| HTML/CSS/JS          | 前端页面                   |
+| searxng              | 免费搜索引擎（可API）       |
 ---
 
 ## 项目结构
@@ -107,14 +98,11 @@ Agent/
    ```
 3. 下载并放置 Qwen3-0.6B 模型于 `model/Qwen3-0.6B/` 目录。
 4. 下载 `ChatLaw-Text2Vec` 嵌入模型于 `embedding_model/all-MiniLM-L6-v2/`。
-5. 在 `config.py` 中填写API密钥以及数据库配置。
-6. 启动后端服务（如有）：
+5. 下载`searxng` 搜索引擎并且配置
+6. 在 `config.py` 中填写API密钥以及数据库配置。
+7. 启动后端服务：
    ```
    python backend/app.py
-   ```
-7. 运行主程序：
-   ```
-   python main.py
    ```
 8. 打开 `frontend/index.html` 体验网页端。
 
