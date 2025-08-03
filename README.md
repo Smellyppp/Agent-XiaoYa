@@ -38,13 +38,9 @@
 | searxng              | 免费搜索引擎（可API）       |
 ---
 
-
----
-
-
 ## 项目
 
-> ![流程](./demo/flowchart.png)
+> <img src="./demo/flowchart.png" alt="流程图" style="max-width: 100%; height: auto;"/>
 
 ---
 ## 项目结构
